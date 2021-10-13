@@ -3,10 +3,14 @@ import json
 import requests
 
 
-class PricingClient:
+class CryptowatchPricingClient:
     def __init__(self):
-        pass
+        base_endpoint = 'https://api.cryptowat.ch'
 
-    def get_price(self):
-        endpoint = "https://api.cryptowat.ch/markets/prices"
+    def get_all_prices(self):
+        endpoint = f"{{self.base_endpoint}}/markets/prices"
+        response = requests.get(endpoint)
+
+    def get_market_price(self, market):
+        endpoint = f"{{self.base_endpoint}}/markets/{{market}}"
         response = requests.get(endpoint)

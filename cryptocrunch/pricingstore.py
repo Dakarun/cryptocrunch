@@ -1,15 +1,28 @@
 import sqlite3
+import os
+
+from cryptocrunch.db import get_db, close_db
 
 
-class KeyValueStore:
-    def __init__(self, database):
-        self.conn = sqlite3.connect(database)
+class PricingStore:
+    def __init__(self, table='pricing'):
+        self.table = table
+        self.conn = get_db()
 
-    def create_table(self):
-        pass
+    @staticmethod
+    def generate_insert_statement(record):
+        return f"INSERT INTO pricing VALUES ({{','.join(record)}})"
 
     def insert(self, record):
-        pass
+        query = self.generate_insert_statement(record)
+        self.conn.execute(query)
+        self.conn.commit()
 
-    def select(self):
+    def bulk_insert(self, records):
+        for record in records:
+            query = self.generate_insert_statement(record)
+            self.conn.execute(query)
+        self.conn.commit()
+
+    def select(self, condition=None):
         pass
