@@ -1,32 +1,42 @@
+import os
+
 from flask import Flask
-from flask_apscheduler import APScheduler
 
 from cryptocrunch import db
 from cryptocrunch.config import Config
+from cryptocrunch.scheduler import scheduler
 
 
-app = Flask(__name__)
-app.config.from_object(Config())
+def create_app(test_config=None):
+    app = Flask("cryptocrunch", instance_relative_config=True)
+    app.config.from_mapping(
+        DATABASE=os.path.join(app.instance_path, "cryptocrunch.db"),
+    )
 
-scheduler = APScheduler()
+    if test_config is None:
+        app.config.from_pyfile("config.py", silent=True)
+    else:
+        app.config.update(test_config)
 
+    try:
+        os.makedirs(app.instance_path)
+    except OSError:
+        pass
 
-@scheduler.task('interval', id='test_print', seconds=2, misfire_grace_time=900)
-def test_print():
-    with open('text.txt', 'a') as f:
-        from datetime import datetime
-        f.write(datetime.now().isoformat())
-        f.write('\n')
-    print('Job fired')
+    @app.route("/")
+    def hello():
+        return "Hello, World!"
 
-
-@app.route('/')
-def hello_world():
-    return '<p>Hello, worlds</p>'
-
-
-if __name__ == '__main__':
+    # register the database commands
+    from cryptocrunch import db
     db.init_app(app)
     scheduler.init_app(app)
-    scheduler.start()
-    app.run()
+
+    app.app_context().push()
+    with app.app_context():
+        from cryptocrunch import tasks
+        scheduler.start()
+        # from cryptocrunch import events
+        from cryptocrunch.pricingstore import PricingStore
+
+    return app

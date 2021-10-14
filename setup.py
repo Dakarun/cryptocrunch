@@ -10,7 +10,6 @@ install_requires = [
 setup(
     name='CryptoCrunch',
     version=version,
-    long_description='Print money (you hope)',
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
